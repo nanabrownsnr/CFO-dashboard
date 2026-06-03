@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   server: {
-    allowedHosts: ["inmost-chester-xerographically.ngrok-free.dev"],
+    allowedHosts: ["inmost-chester-xerographically.ngrok-free.dev", "cfo-dashboard-mw53.onrender.com"],
     proxy: {
       "/api": {
         target: process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:8787",
