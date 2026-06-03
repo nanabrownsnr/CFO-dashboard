@@ -820,7 +820,7 @@ function TreasuryView({ m, base, scenario, stressed, scenarios = {}, forecasts =
         scen: toNumber(row.total_liquidity_m),
       }));
     }
-    const wk = (st, inf) => { const arr = []; let l = st; const w = (MONTHLY_BURN * (1 + inf)) / 4.345; for (let i = 0; i <= 26; i++) { arr.push(Math.max(0, +l.toFixed(1))); l -= w; } return arr; };
+    const wk = (st, inf) => { const arr = []; let l = st; const w = (m.monthlyBurn * (1 + inf)) / 4.345; for (let i = 0; i <= 26; i++) { arr.push(Math.max(0, +l.toFixed(1))); l -= w; } return arr; };
     const b = wk(base.startLiquidity, 0), sp = wk(m.startLiquidity, scenarios[scenario]?.inflowCut ?? 0);
     return b.map((v, i) => ({ week: i, base: v, scen: sp[i] }));
   }, [m, base, scenario, forecasts, scenarios]);
