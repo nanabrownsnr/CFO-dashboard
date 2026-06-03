@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import express from "express";
@@ -438,7 +439,16 @@ app.post("/api/import/workbook/commit", async (req, res) => {
   }
 });
 
-const port = Number(process.env.INGEST_PORT ?? 8787);
+const port = Number(process.env.PORT ?? process.env.INGEST_PORT ?? 8787);
+const distDir = path.resolve(__dirname, "dist");
+
+if (existsSync(distDir)) {
+  app.use(express.static(distDir));
+  app.get(/^\/(?!api\/).*/, (_req, res) => {
+    res.sendFile(path.join(distDir, "index.html"));
+  });
+}
+
 app.listen(port, "0.0.0.0", () => {
   console.log(`Ingest API listening on http://0.0.0.0:${port}`);
 });
