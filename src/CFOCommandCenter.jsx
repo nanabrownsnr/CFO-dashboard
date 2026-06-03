@@ -484,6 +484,7 @@ function deriveTreasury(key, source = {}) {
   const treasuryInput = source.treasuryInputs?.[0] ?? {};
   const s = scenarios[key] ?? { label: key, collateralImpair: 0, advanceCut: 0, delinqMult: 1, inflowCut: 0, desc: "" };
   const unrestricted = toNumber(treasuryInput.unrestricted_cash_m, UNRESTRICTED);
+  const restricted = toNumber(treasuryInput.restricted_cash_m, RESTRICTED);
   const monthlyBurn = toNumber(treasuryInput.monthly_burn_m, MONTHLY_BURN);
   const grossLoans = toNumber(treasuryInput.gross_loans_m, GROSS_LOANS);
   const asOfDate = treasuryInput.as_of_date ?? "2026-06-01";
@@ -578,6 +579,7 @@ function deriveTreasury(key, source = {}) {
     runwayDays,
     capitalNeed,
     exposures,
+    restricted,
     hhi,
   };
 }
@@ -840,7 +842,7 @@ function TreasuryView({ m, base, scenario, stressed, scenarios = {}, forecasts =
       <div style={{ gridColumn: "span 12" }}>
         <MetricStrip>
         <KPI label="Liquidity Runway" value={m.runwayDays} unit="days" status={runwayStatus} sub={`avail $${(m.unrestricted + m.totalAvail).toFixed(0)}M`} />
-        <KPI label="Unrestricted Cash" value={m.unrestricted.toFixed(1)} unit="$M" status={m.unrestricted > 25 ? "green" : "red"} sub={`restricted $${RESTRICTED}M`} />
+        <KPI label="Unrestricted Cash" value={m.unrestricted.toFixed(1)} unit="$M" status={m.unrestricted > 25 ? "green" : "red"} sub={`restricted $${m.restricted.toFixed(1)}M`} />
         <KPI label="Warehouse Avail." value={m.totalAvail.toFixed(0)} unit="$M" status={m.totalAvail > 40 ? "green" : m.totalAvail > 15 ? "amber" : "red"} sub={`of $${m.totalCommit}M`} />
         <KPI label="BB Utilization" value={((m.totalDrawn / m.totalCommit) * 100).toFixed(1)} unit="%" status={utilStatus} sub={`$${m.totalDrawn}M drawn`} />
         <KPI label="Tightest Covenant" value={tightest.head} unit={tightest.unit} status={tightest.status} sub={tightest.name} />
@@ -1050,6 +1052,7 @@ function ComplianceView({ states = [], litigation = [], channels = [], stateLaws
     { m: "Foreclosure contest (owner-occ.)", j: "NY State", exp: 1.1, stage: "Pre-trial", s: "amber" },
     { m: "Broker disclosure dispute", j: "FL State", exp: 0.6, stage: "Settlement talks", s: "amber" },
   ];
+  const litigationExposure = litigationRows.reduce((sum, row) => sum + toNumber(row.exp), 0);
   /* ? WIRE ? Broker/channel risk.
    * SOURCE: origination channel tags + performance + complaints log.
    * TABLE: loans (channel), funding_providers/brokers. ENDPOINT: GET /api/compliance/channels */
@@ -1083,7 +1086,7 @@ function ComplianceView({ states = [], litigation = [], channels = [], stateLaws
           <KPI label="Loans > APR Threshold" value={stateRows.filter((r) => r.s === "red").length} unit="" status="red" sub="review queue" />
           <KPI label="Wtd. Avg Portfolio APR" value={(stateRows.reduce((sum, row) => sum + toNumber(row.apr), 0) / Math.max(stateRows.length, 1)).toFixed(1)} unit="%" status="amber" sub="all-in incl. fees" />
           <KPI label="True-Lender Exposure" value={stateRows.some((r) => r.s === "red") ? "High" : "Moderate"} unit="" status={stateRows.some((r) => r.s === "red") ? "red" : "amber"} sub="bank-partner structures" />
-          <KPI label="Open Litigation" value={litigationRows.length} unit="" status={litigationRows.some((r) => r.s === "red") ? "red" : "amber"} sub="$8.7M est. exposure" />
+          <KPI label="Open Litigation" value={litigationRows.length} unit="" status={litigationRows.some((r) => r.s === "red") ? "red" : "amber"} sub={`$${litigationExposure.toFixed(1)}M est. exposure`} />
         </MetricStrip>
       </div>
       <Panel span={6} title="State Usury Exposure · Top 6" icon={Scale} right={<span style={{ ...mono, fontSize: 10, color: C.dim }}>indicative - pending legal review</span>}>
