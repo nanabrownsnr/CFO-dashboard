@@ -346,6 +346,15 @@ app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "ingest-api" });
 });
 
+app.get("/config.js", (_req, res) => {
+  const config = {
+    VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL ?? "",
+    VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY ?? "",
+    VITE_API_BASE_URL: process.env.VITE_API_BASE_URL ?? "",
+  };
+  res.type("application/javascript").send(`window.__APP_CONFIG__ = ${JSON.stringify(config)};`);
+});
+
 app.post("/api/import/workbook/commit", async (req, res) => {
   const workbookName = req.body?.workbookName ?? "workbook.xlsx";
   const sheets = Array.isArray(req.body?.sheets) ? req.body.sheets : [];

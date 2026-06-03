@@ -6,6 +6,10 @@ export default defineConfig({
   server: {
     allowedHosts: ["inmost-chester-xerographically.ngrok-free.dev", "cfo-dashboard-mw53.onrender.com"],
     proxy: {
+      "/config.js": {
+        target: process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:8787",
+        changeOrigin: true,
+      },
       "/api": {
         target: process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:8787",
         changeOrigin: true,

@@ -121,9 +121,10 @@ const C = {
 const RAG = { green: C.green, amber: C.amber, red: C.red, gray: C.gray };
 const mono = { fontFamily: "DM Sans, sans-serif" };
 const sans = { fontFamily: "DM Sans, sans-serif" };
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ?? "";
+const runtimeConfig = typeof window !== "undefined" ? window.__APP_CONFIG__ ?? {} : {};
+const SUPABASE_URL = runtimeConfig.VITE_SUPABASE_URL ?? import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = runtimeConfig.VITE_SUPABASE_ANON_KEY ?? import.meta.env.VITE_SUPABASE_ANON_KEY;
+const API_BASE_URL = (runtimeConfig.VITE_API_BASE_URL ?? import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 const supabase = SUPABASE_URL && SUPABASE_ANON_KEY ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 function toNumber(value, fallback = 0) {
