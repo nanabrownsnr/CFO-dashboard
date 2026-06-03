@@ -123,6 +123,7 @@ const mono = { fontFamily: "DM Sans, sans-serif" };
 const sans = { fontFamily: "DM Sans, sans-serif" };
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ?? "";
 const supabase = SUPABASE_URL && SUPABASE_ANON_KEY ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 function toNumber(value, fallback = 0) {
@@ -1439,7 +1440,7 @@ function ImportView({ rawData = {}, feeds = [], ingestRuns = [], onCommitted }) 
     setCommitState({ status: "running", message: "Writing workbook to Supabase…" });
 
     try {
-      const response = await fetch("/api/import/workbook/commit", {
+      const response = await fetch(`${API_BASE_URL}/api/import/workbook/commit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1452,8 +1453,15 @@ function ImportView({ rawData = {}, feeds = [], ingestRuns = [], onCommitted }) 
           })),
         }),
       });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error ?? "Import failed");
+      const responseText = await response.text();
+      let payload = null;
+      try {
+        payload = responseText ? JSON.parse(responseText) : null;
+      } catch {
+        payload = null;
+      }
+      if (!response.ok) throw new Error(payload?.error ?? responseText.trim() ?? `Import failed (${response.status})`);
+      if (!payload) throw new Error("Import endpoint returned an empty response.");
       setCommitState({ status: "success", message: `Committed ${payload.totalRows} rows across ${payload.results.length} sheets.` });
       if (onCommitted) onCommitted(payload);
     } catch (error) {
