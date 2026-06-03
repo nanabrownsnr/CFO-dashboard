@@ -564,7 +564,22 @@ function deriveTreasury(key, source = {}) {
     .map((entry) => ({ ...entry, pct: entry.drawn / totalExposureDrawn }))
     .sort((a, b) => b.pct - a.pct);
   const hhi = exposures.reduce((a, e) => a + e.pct * e.pct, 0);
-  return { facilities, totalAvail, totalMarginCall, totalDrawn, totalCommit, startLiquidity, covenants, runwayDays, capitalNeed, exposures, hhi };
+  return {
+    facilities,
+    totalAvail,
+    totalMarginCall,
+    totalDrawn,
+    totalCommit,
+    startLiquidity,
+    unrestricted,
+    monthlyBurn,
+    grossLoans,
+    covenants,
+    runwayDays,
+    capitalNeed,
+    exposures,
+    hhi,
+  };
 }
 
 /* ----------------------------------------------------------------------------
@@ -697,7 +712,23 @@ function deriveAccounting(key, source = {}) {
     ? +foreclosureLoans.reduce((sum, loan) => sum + toNumber(loan.current_balance_m), 0).toFixed(0)
     : +(96 * (1 + 0.6 * (s.delinqMult - 1))).toFixed(0);
 
-  return { cecl, coverage, npl, nco, build, history, vintages, products, recovery, timeline, severity, fcCount, fcValue, reserveMult };
+  return {
+    cecl,
+    coverage,
+    npl,
+    nco,
+    build,
+    history,
+    vintages,
+    products,
+    recovery,
+    timeline,
+    severity,
+    fcCount,
+    fcValue,
+    reserveMult,
+    grossLoans,
+  };
 }
 
 /* ===== OVERVIEW =========================================================== */
@@ -808,8 +839,8 @@ function TreasuryView({ m, base, scenario, stressed, scenarios = {}, forecasts =
       </div>
       <div style={{ gridColumn: "span 12" }}>
         <MetricStrip>
-        <KPI label="Liquidity Runway" value={m.runwayDays} unit="days" status={runwayStatus} sub={`avail $${(UNRESTRICTED + m.totalAvail).toFixed(0)}M`} />
-        <KPI label="Unrestricted Cash" value={UNRESTRICTED.toFixed(1)} unit="$M" status={UNRESTRICTED > 25 ? "green" : "red"} sub={`restricted $${RESTRICTED}M`} />
+        <KPI label="Liquidity Runway" value={m.runwayDays} unit="days" status={runwayStatus} sub={`avail $${(m.unrestricted + m.totalAvail).toFixed(0)}M`} />
+        <KPI label="Unrestricted Cash" value={m.unrestricted.toFixed(1)} unit="$M" status={m.unrestricted > 25 ? "green" : "red"} sub={`restricted $${RESTRICTED}M`} />
         <KPI label="Warehouse Avail." value={m.totalAvail.toFixed(0)} unit="$M" status={m.totalAvail > 40 ? "green" : m.totalAvail > 15 ? "amber" : "red"} sub={`of $${m.totalCommit}M`} />
         <KPI label="BB Utilization" value={((m.totalDrawn / m.totalCommit) * 100).toFixed(1)} unit="%" status={utilStatus} sub={`$${m.totalDrawn}M drawn`} />
         <KPI label="Tightest Covenant" value={tightest.head} unit={tightest.unit} status={tightest.status} sub={tightest.name} />
@@ -913,7 +944,7 @@ function AccountingView({ a, scenario, stressed }) {
       </div>
       <div style={{ gridColumn: "span 12" }}>
         <MetricStrip>
-        <KPI label="CECL Reserve" value={a.cecl} unit="$M" status={a.coverage > 4.5 ? "red" : a.coverage > 3.5 ? "amber" : "green"} sub={`on $${GROSS_LOANS}M gross loans`} />
+        <KPI label="CECL Reserve" value={a.cecl} unit="$M" status={a.coverage > 4.5 ? "red" : a.coverage > 3.5 ? "amber" : "green"} sub={`on $${a.grossLoans}M gross loans`} />
         <KPI label="Reserve Coverage" value={a.coverage} unit="%" status={a.coverage > 4.5 ? "red" : a.coverage > 3.5 ? "amber" : "green"} sub="reserve / gross loans" />
         <KPI label="Reserve Build (QoQ)" value={(a.build >= 0 ? "+" : "") + a.build} unit="$M" status={a.build > 4 ? "red" : a.build > 1.5 ? "amber" : "green"} sub="earnings impact" />
         <KPI label="NPL Ratio" value={a.npl} unit="%" status={a.npl > 6 ? "red" : a.npl > 4 ? "amber" : "green"} sub="60+ DPD non-performing" />
