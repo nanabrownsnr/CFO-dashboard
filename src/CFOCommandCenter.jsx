@@ -795,6 +795,7 @@ function TreasuryView({ m, base, scenario, stressed, scenarios = {}, forecasts =
   const runwayStatus = m.runwayDays > 270 ? "green" : m.runwayDays > 120 ? "amber" : "red";
   const utilStatus = m.totalDrawn / m.totalCommit > 0.9 ? "red" : m.totalDrawn / m.totalCommit > 0.82 ? "amber" : "green";
   const tightest = [...m.covenants].sort((a, b) => (a.status === "red" ? 0 : a.status === "amber" ? 1 : 2) - (b.status === "red" ? 0 : b.status === "amber" ? 1 : 2))[0];
+  const topExposure = m.exposures?.[0] ?? null;
   return (
     <div style={{ display: "grid", gap: 24, marginTop: 24, gridTemplateColumns: "repeat(12,minmax(0,1fr))" }}>
       <div style={{ gridColumn: "span 12" }}>
@@ -872,7 +873,9 @@ function TreasuryView({ m, base, scenario, stressed, scenarios = {}, forecasts =
             </Bar>
           </BarChart>
         </ResponsiveContainer>
-        <div style={{ ...mono, fontSize: 10, color: C.dim, marginTop: 4 }}>Top: {m.exposures[0].lender} = {(m.exposures[0].pct * 100).toFixed(0)}%</div>
+        <div style={{ ...mono, fontSize: 10, color: C.dim, marginTop: 4 }}>
+          Top: {topExposure ? `${topExposure.lender} = ${(topExposure.pct * 100).toFixed(0)}%` : "No exposure data"}
+        </div>
       </Panel>
       <Panel span={12} title="Covenant Headroom" icon={Gauge}>
         <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" }}>
